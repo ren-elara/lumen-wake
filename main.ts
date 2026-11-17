@@ -1,0 +1,13 @@
+import {cpSync,mkdirSync,writeFileSync,readdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {buildDossier} from './vendor/makefun-game.ts';
+const source=fileURLToPath(new URL('.',import.meta.url));
+const output=process.env.MAKEFUN_OUTPUT_DIR??'/output';
+const images=readdirSync(join(source,'screenshots')).filter(name=>/\.(png|jpe?g)$/i.test(name)).sort();
+if(images.length<3||images.length>4)throw new Error('Expected three or four real gameplay screenshots.');
+mkdirSync(output,{recursive:true});
+for(const folder of ['game','screenshots'])cpSync(join(source,folder),join(output,folder),{recursive:true});
+const caps={text_max_bytes:163840,screenshots:{max:4,max_bytes:262144},game_max_files:993,game_max_bytes:50331648,game_path_max_bytes:1000};
+writeFileSync(join(output,'dossier.json'),buildDossier(output,caps));
+console.log(`Lumen Wake packaged: ${images.length} screenshots, offline game, deterministic dossier.`);

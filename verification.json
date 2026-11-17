@@ -1,0 +1,26 @@
+{
+  "checks": 10,
+  "simulationSteps": 209656,
+  "seededVoyages": 48,
+  "victories": 48,
+  "losses": 0,
+  "longestVoyageSeconds": 57.5,
+  "updateMs": {
+    "p50": 0.0043,
+    "p95": 0.0126,
+    "p99": 0.0236,
+    "max": 5.4119
+  },
+  "frameBudgetMs": 16.667,
+  "peaks": {
+    "enemies": 15,
+    "bullets": 35,
+    "sparks": 38,
+    "particles": 419
+  },
+  "retainedHeapBytes": -1176,
+  "node": "v22.23.5",
+  "platform": "linux",
+  "arch": "arm64",
+  "notes": "Update-only timings; browser rendering is measured separately. Finite stress tests cannot prove absence of every memory leak."
+}

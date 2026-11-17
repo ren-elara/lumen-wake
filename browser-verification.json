@@ -1,0 +1,28 @@
+{
+  "browser": "142.0.7444.59",
+  "viewport": "1280×800",
+  "inputDrivenVictory": {
+    "seconds": 57.4,
+    "score": 98919,
+    "dawns": 5,
+    "banked": 243,
+    "hits": 6,
+    "kills": 39,
+    "iterations": 227
+  },
+  "pageErrors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "pauseFreeze": true,
+  "restart": true,
+  "scorePersistence": true,
+  "portraitTouch": true,
+  "drawAndUpdateMs": {
+    "p50": 3,
+    "p95": 4,
+    "p99": 7
+  },
+  "samples": 379,
+  "liveVoices": 3,
+  "notes": "CPU headless Chromium on ARM64 musl; frame work timings include drawing, simulation and HUD, but exclude compositor and display latency. Screenshots are unedited browser captures from reachable input-driven states."
+}

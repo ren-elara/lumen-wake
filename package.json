@@ -1,0 +1,1 @@
+{"name":"lumen-wake","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node serve.mjs","verify":"node --expose-gc verify.mjs","build":"MAKEFUN_OUTPUT_DIR=out node main.ts"}}
