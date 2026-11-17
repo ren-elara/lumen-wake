@@ -7,11 +7,12 @@ const browser=await chromium.launch({...(process.env.BROWSER_EXECUTABLE?{executa
 const page=await browser.newPage({viewport:{width:1280,height:800},deviceScaleFactor:1,hasTouch:true});
 const errors=[],external=[],failed=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:8080/')&&!r.url().startsWith('data:'))external.push(r.url());});page.on('requestfailed',r=>failed.push(r.url()));
-await page.clock.install();
+await page.clock.install({time:new Date('2026-11-17T12:00:00Z')});
+await page.clock.pauseAt(new Date('2026-11-17T12:00:01Z'));
 await page.goto((process.env.GAME_URL||'http://127.0.0.1:8080/')+'?seed=FIRST-LIGHT');await page.waitForFunction(()=>globalThis.lumen);
 await page.clock.runFor(300);
 const titleLayout=await page.locator('.title-copy').boundingBox();assert(titleLayout.x>=0&&titleLayout.y>=82);
-await page.screenshot({path:root+'/screenshots/1-start.jpg',type:'jpeg',quality:87});
+await page.screenshot({path:root+'/screenshots/2-storm.jpg',type:'jpeg',quality:87});
 await page.keyboard.press('Enter');await page.clock.runFor(100);
 assert.equal(await page.evaluate(()=>lumen.snapshot().phase),'playing');
 await page.keyboard.press('Escape');const paused=await page.evaluate(()=>lumen.snapshot().time);await page.clock.runFor(1000);assert.equal(await page.evaluate(()=>lumen.snapshot().time),paused);await page.locator('#resume').click();
@@ -28,6 +29,7 @@ for(let i=0;i<2400;i++){
     await page.keyboard.press('3');await page.clock.runFor(40);await page.mouse.down();continue;
   }
   if(s.phase==='won'||s.phase==='lost'){
+    console.log('terminal',s.phase,s.dawn,s.time,s.player.hp,s.banked);
     await page.mouse.up();await page.clock.runFor(500);await page.screenshot({path:root+'/screenshots/4-morning.jpg',type:'jpeg',quality:87});summary=s;break;
   }
   const p=s.player;
@@ -41,7 +43,7 @@ for(let i=0;i<2400;i++){
   if(p.dash<=0&&nearest<105)await page.keyboard.press('Space');
   if(p.pulse<=0&&(nearest<70||s.bullets.some(b=>Math.hypot(b.x-p.x,b.y-p.y)<75)))await page.keyboard.press('e');
   await page.clock.runFor(100);
-  if(!capturedAction&&s.dawn>=4&&s.enemies.length>=4&&p.cargo>=4){await page.screenshot({path:root+'/screenshots/2-storm.jpg',type:'jpeg',quality:87});capturedAction=true;}
+  if(!capturedAction&&s.dawn>=4&&s.enemies.length>=4&&p.cargo>=4){await page.screenshot({path:root+'/screenshots/1-start.jpg',type:'jpeg',quality:87});capturedAction=true;}
 }
 assert(summary,'Voyage reached a result');assert.equal(summary.phase,'won','Input-driven voyage should be winnable');assert(capturedAction&&capturedUpgrade);
 const score=summary.score;assert(await page.locator('#retry').isVisible());await page.locator('#retry').click();await page.clock.runFor(200);assert.equal(await page.evaluate(()=>lumen.snapshot().phase),'playing');

@@ -3,7 +3,7 @@ import {performance} from 'node:perf_hooks';
 import {writeFileSync} from 'node:fs';
 import {createGame,startGame,update,togglePause,chooseUpgrade,bankCargo,hurtPlayer,spawnEnemy,spawnCluster,continueEndless,goal} from './game/src/simulation.js';
 import {segmentCircle,distance,unit,constrain} from './game/src/math.js';
-import {WORLD as W,LIMITS,STEP} from './game/src/config.js';
+import {WORLD as W,LIMITS,STEP,offeredUpgrades,UPGRADES} from './game/src/config.js';
 import {Effects} from './game/src/particles.js';
 
 let checks=0;
@@ -25,16 +25,22 @@ test('swept collisions: tunneling, tangent, zero-length, misses',()=>{
 test('title, pause, terminal states freeze the simulation',()=>{const s=createGame();const before=JSON.stringify(s);update(s,{dash:true});assert.equal(JSON.stringify(s),before);startGame(s);update(s,{x:1});togglePause(s);const frozen=JSON.stringify(s);for(let i=0;i<90;i++)update(s,{x:1,dash:true});assert.equal(JSON.stringify(s),frozen);togglePause(s);assert.equal(s.phase,'playing');s.phase='lost';const score=s.score;update(s,{});assert.equal(s.score,score);});
 test('banking is atomic, guarded and advances one dawn',()=>{const s=createGame();startGame(s);s.player.x=W.cx;s.player.y=W.cy;s.player.cargo=12;assert(bankCargo(s));assert.equal(s.banked,12);assert.equal(s.player.cargo,0);assert(!bankCargo(s));s.player.bankCooldown=0;s.player.cargo=12;assert(bankCargo(s));assert.equal(s.phase,'upgrade');assert(!chooseUpgrade(s,'invalid'));assert(chooseUpgrade(s,'magnet'));assert.equal(s.dawn,1);assert.equal(s.player.cap,16);assert(!chooseUpgrade(s,'hull'));});
 test('damage, invulnerability and death preserve limits',()=>{const s=createGame();startGame(s);s.player.cargo=11;s.player.invuln=0;assert(hurtPlayer(s));assert.equal(s.player.cargo,5);assert(!hurtPlayer(s));s.player.dashTime=.1;s.player.invuln=0;assert(!hurtPlayer(s));s.player.dashTime=0;s.player.hp=1;assert(hurtPlayer(s));assert.equal(s.phase,'lost');valid(s);});
-test('victory, endless transition and all upgrade branches',()=>{const s=createGame();startGame(s);s.dawn=4;s.energy=goal(s)-4;s.player.x=W.cx;s.player.y=W.cy;s.player.cargo=4;bankCargo(s);assert.equal(s.phase,'won');continueEndless(s);assert.equal(s.phase,'upgrade');const max=s.player.maxHp;chooseUpgrade(s,'hull');assert.equal(s.player.maxHp,max+1);s.phase='upgrade';const cd=s.player.dashCooldown;chooseUpgrade(s,'dash');assert(s.player.dashCooldown<cd);});
+test('victory, endless transition and all nine upgrade branches',()=>{const s=createGame();startGame(s);s.dawn=4;s.energy=goal(s)-4;s.player.x=W.cx;s.player.y=W.cy;s.player.cargo=4;bankCargo(s);assert.equal(s.phase,'won');continueEndless(s);assert.equal(s.phase,'upgrade');assert(chooseUpgrade(s,'harbor'));for(let i=0;i<UPGRADES.length;i++){const state=createGame();state.phase='upgrade';state.dawn=Math.floor(i/3);state.player.hp=1;assert(chooseUpgrade(state,UPGRADES[i].id));assert.equal(state.upgrades[0],UPGRADES[i].id);valid(state);}const a=createGame();a.phase='upgrade';assert(!chooseUpgrade(a,'heart'),'Unoffered gift must be refused');});
 test('invalid delta/input and arena boundary remain finite',()=>{const s=createGame();startGame(s);update(s,{x:NaN,y:Infinity,target:{x:NaN,y:0}},NaN);for(let i=0;i<1000;i++)update(s,{x:1e20,y:-1e20,dash:true},Infinity);s.player.x=1e9;s.player.y=-1e9;constrain(s.player,W);valid(s);});
-test('identical seed plus inputs reproduce complete state',()=>{const a=createGame('repeat'),b=createGame('repeat');startGame(a);startGame(b);for(let i=0;i<18000;i++){if(a.phase==='upgrade'){chooseUpgrade(a,'hull');chooseUpgrade(b,'hull');}const input=structuredClone(pilot(a));update(a,structuredClone(input));update(b,structuredClone(input));}assert.deepEqual(a,b);assert.notEqual(createGame('other').rng,a.rng);});
+test('gift effects change combat, economy and healing',()=>{
+  const a=createGame();a.phase='upgrade';a.dawn=1;chooseUpgrade(a,'pulse');assert(a.player.pulseRadius>175&&a.player.pulseCooldown<7);
+  const b=createGame();b.phase='upgrade';b.dawn=2;chooseUpgrade(b,'prism');b.player.x=W.cx;b.player.y=W.cy;b.player.cargo=4;bankCargo(b);assert.equal(b.score,1000);assert.equal(b.player.cap,18);
+  const c=createGame();c.phase='upgrade';c.dawn=2;chooseUpgrade(c,'heart');c.player.hp=2;c.enemies.push({x:c.player.x+100,y:c.player.y,type:'hunter',r:15,age:2,windup:0,cool:2,vx:0,vy:0,angle:0,dead:false});update(c,{pulse:true});assert.equal(c.player.hp,3);assert.equal(c.kills,1);
+  const d=createGame();d.phase='upgrade';d.dawn=1;chooseUpgrade(d,'harbor');d.player.invuln=0;d.player.x=W.cx;d.player.y=W.cy;d.player.cargo=1;bankCargo(d);assert(d.player.invuln>=.9);
+});
+test('identical seed plus inputs reproduce complete state',()=>{const a=createGame('repeat'),b=createGame('repeat');startGame(a);startGame(b);for(let i=0;i<18000;i++){if(a.phase==='upgrade'){const id=offeredUpgrades(a)[2].id;chooseUpgrade(a,id);chooseUpgrade(b,id);}const input=structuredClone(pilot(a));update(a,structuredClone(input));update(b,structuredClone(input));}assert.deepEqual(a,b);assert.notEqual(createGame('other').rng,a.rng);});
 
 const timings=[],peaks={enemies:0,bullets:0,sparks:0,particles:0};let steps=0,victories=0,losses=0,longest=0;
 test('48 seeded voyages exercise full loop, difficulty and effects',()=>{
   for(let run=0;run<48;run++){
     const s=createGame('stress-'+run),fx=new Effects();startGame(s);
     for(let i=0;i<36000&&s.phase!=='won'&&s.phase!=='lost';i++){
-      if(s.phase==='upgrade')chooseUpgrade(s,run%3===0?'magnet':run%3===1?'hull':'dash');
+      if(s.phase==='upgrade')chooseUpgrade(s,offeredUpgrades(s)[run%3].id);
       const input=pilot(s),t=performance.now();update(s,input);timings.push(performance.now()-t);steps++;
       for(const e of s.events)fx.event(e);fx.update(STEP);
       if(i%60===0)valid(s);
@@ -44,7 +50,7 @@ test('48 seeded voyages exercise full loop, difficulty and effects',()=>{
   }
   assert(victories>0,'At least one complete victory must be achievable');assert(losses>0||victories===48);assert(peaks.particles<=LIMITS.particles);
 });
-test('saturated director/projectile/pickup bounds over 60,000 steps',()=>{const s=createGame('saturation','endless');startGame(s);s.dawn=7;s.player.hp=s.player.maxHp=9;for(let i=0;i<60000;i++){s.player.invuln=1;if(s.phase==='upgrade')chooseUpgrade(s,'dash');if(i%10===0){spawnEnemy(s);spawnCluster(s);}update(s,{x:Math.sin(i*.013),y:Math.cos(i*.011),dash:i%45===0,pulse:i%240===0});if(i%300===0)valid(s);}valid(s);});
+test('saturated director/projectile/pickup bounds over 60,000 steps',()=>{const s=createGame('saturation','endless');startGame(s);s.dawn=7;s.player.hp=s.player.maxHp=9;for(let i=0;i<60000;i++){s.player.invuln=1;if(s.phase==='upgrade')chooseUpgrade(s,offeredUpgrades(s)[0].id);if(i%10===0){spawnEnemy(s);spawnCluster(s);}update(s,{x:Math.sin(i*.013),y:Math.cos(i*.011),dash:i%45===0,pulse:i%240===0});if(i%300===0)valid(s);}valid(s);});
 
 let retainedHeapBytes=null;
 test('effects and discarded runs release retained state',()=>{const fx=new Effects();for(let i=0;i<1000;i++){fx.burst(10,10,'#fff',60);fx.ring(10,10,'#fff');fx.label(1,1,'test','#fff');fx.update(.1);}assert(fx.particles.length<=LIMITS.particles);for(let i=0;i<100;i++)fx.update(.1);assert.equal(fx.particles.length,0);assert.equal(fx.rings.length,0);assert.equal(fx.labels.length,0);if(global.gc){global.gc();const before=process.memoryUsage().heapUsed;for(let i=0;i<300;i++){const s=createGame('gc-'+i);startGame(s);for(let j=0;j<300;j++)update(s,pilot(s));}global.gc();retainedHeapBytes=process.memoryUsage().heapUsed-before;assert(retainedHeapBytes<8*1024*1024,'Retained heap grew beyond 8 MiB');}});

@@ -1,5 +1,11 @@
 import { WORLD as W, STEP, LIMITS, DAWNS } from './config.js';
 import {clamp,distance,unit,hashSeed,random,segmentCircle,constrain} from './math.js';
+import {emit} from './events.js';
+import {multiplier,goal,bankCargo} from './progression.js';
+import {projectile,destroyEnemy,hurtPlayer} from './combat.js';
+export {emit} from './events.js';
+export {multiplier,goal,bankCargo,chooseUpgrade,continueEndless} from './progression.js';
+export {destroyEnemy,hurtPlayer} from './combat.js';
 
 export function createGame(seed='FIRST-LIGHT',mode='voyage') {
   const s={seed:String(seed),mode,rng:hashSeed(seed),phase:'title',time:0,tick:0,dawn:0,energy:0,score:0,banked:0,kills:0,banks:0,hits:0,peak:1,combo:0,comboTime:0,spawn:4,cluster:0,pressure:0.45,bossAngle:0,bossShot:1.5,shake:0,hitstop:0,banner:4,events:[],enemies:[],bullets:[],sparks:[],upgrades:[],won:false,
@@ -7,11 +13,8 @@ export function createGame(seed='FIRST-LIGHT',mode='voyage') {
   for(let i=0;i<5;i++)spawnCluster(s,i===0?{x:W.cx+110,y:W.cy+95}:null);
   return s;
 }
-export function emit(s,type,x=s.player.x,y=s.player.y,value=0) {if(s.events.length<LIMITS.events)s.events.push({type,x,y,value});}
 export function startGame(s) {if(s.phase==='title')s.phase='playing';}
 export function togglePause(s) {if(s.phase==='playing')s.phase='paused';else if(s.phase==='paused')s.phase='playing';}
-export function multiplier(s) {return Math.min(4,1+Math.floor(s.player.cargo/4));}
-export function goal(s) {return DAWNS[Math.min(s.dawn,4)].goal+(s.dawn>4?(s.dawn-4)*10:0);}
 export function spawnCluster(s,position=null) {
   const a=random(s)*Math.PI*2,r=0.34+random(s)*0.52;
   const c=position||{x:W.cx+Math.cos(a)*W.rx*r,y:W.cy+Math.sin(a)*W.ry*r};
@@ -27,38 +30,6 @@ export function spawnEnemy(s,type=null) {
   const r=random(s);type??=s.dawn>=2&&r<0.25?'lancer':s.dawn>=1&&r<0.5?'shooter':'hunter';
   s.enemies.push({x,y,type,r:type==='shooter'?19:15,age:0,windup:0,cool:1.8+random(s)*2,vx:0,vy:0,angle:a,dead:false});
 }
-function projectile(s,x,y,angle,speed=120) {if(s.bullets.length<LIMITS.bullets)s.bullets.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:7});}
-export function destroyEnemy(s,e) {
-  if(e.dead)return;e.dead=true;s.kills++;s.combo=Math.min(20,s.combo+1);s.comboTime=3;s.score+=40*(1+s.combo*0.15);s.shake=Math.max(s.shake,5);s.hitstop=Math.max(s.hitstop,0.025);
-  emit(s,'destroy',e.x,e.y,s.combo);
-  for(let i=0;i<3&&s.sparks.length<LIMITS.sparks;i++)s.sparks.push({x:e.x+(random(s)-0.5)*30,y:e.y+(random(s)-0.5)*30,age:0,life:18,phase:random(s)*6.28});
-}
-export function hurtPlayer(s) {
-  const p=s.player;if(p.invuln>0||p.dashTime>0||s.phase!=='playing')return false;
-  p.hp--;p.cargo=Math.floor(p.cargo/2);p.invuln=1.7;s.hits++;s.combo=0;s.shake=12;s.hitstop=0.07;s.pressure=clamp(s.pressure-0.2,0.15,1);emit(s,'hurt');
-  if(p.hp<=0){p.hp=0;s.phase='lost';emit(s,'lost');}return true;
-}
-export function bankCargo(s) {
-  const p=s.player;if(s.phase!=='playing'||!p.cargo||p.bankCooldown>0||distance(p,{x:W.cx,y:W.cy})>57)return false;
-  const cargo=p.cargo,m=multiplier(s),points=Math.round(cargo*100*m*(1+s.combo*0.025));
-  s.score+=points;s.energy+=cargo;s.banked+=cargo;s.banks++;s.peak=Math.max(s.peak,m);p.cargo=0;p.bankCooldown=0.7;p.pulse=Math.max(0,p.pulse-2);s.pressure=clamp(s.pressure+0.045,0.15,1);s.shake=7;
-  emit(s,'bank',W.cx,W.cy,points);for(const e of s.enemies)if(distance(e,{x:W.cx,y:W.cy})<150)destroyEnemy(s,e);
-  s.bullets=s.bullets.filter(b=>distance(b,{x:W.cx,y:W.cy})>180);
-  if(s.energy>=goal(s)){
-    if(s.dawn>=4&&s.mode!=='endless'){s.phase='won';s.won=true;s.score+=5000+p.hp*500;emit(s,'win');}
-    else{s.phase='upgrade';emit(s,'dawn');}
-  }
-  return true;
-}
-export function chooseUpgrade(s,id) {
-  if(s.phase!=='upgrade'||!['dash','magnet','hull'].includes(id))return false;
-  const p=s.player;s.upgrades.push(id);
-  if(id==='dash')p.dashCooldown=Math.max(0.45,p.dashCooldown*0.78);
-  if(id==='magnet'){p.magnet+=18;p.cap+=4;}
-  if(id==='hull'){p.maxHp=Math.min(9,p.maxHp+1);p.hp=Math.min(p.maxHp,p.hp+2);}
-  s.dawn++;s.energy=0;s.enemies=[];s.bullets=[];s.banner=4;s.spawn=2.5;p.invuln=2;p.dash=0;p.hp=Math.min(p.maxHp,p.hp+1);s.phase='playing';emit(s,'launch');return true;
-}
-export function continueEndless(s) {if(s.phase!=='won')return;s.mode='endless';s.phase='upgrade';}
 export function update(s,input={},dt=STEP) {
   s.events.length=0;if(s.phase!=='playing')return;
   dt=clamp(Number.isFinite(dt)?dt:0,0,0.05);if(!dt)return;
@@ -72,11 +43,11 @@ export function update(s,input={},dt=STEP) {
     const v=unit(input.target.x-p.x,input.target.y-p.y),d=distance(p,input.target);dx=v.x*Math.min(1,d/18);dy=v.y*Math.min(1,d/18);
   }
   const magnitude=Math.hypot(dx,dy);let v=magnitude>1?unit(dx,dy):{x:dx,y:dy};if(magnitude>0.08){const facing=unit(dx,dy);p.dx=facing.x;p.dy=facing.y;}
-  if(input.dash&&p.dash<=0){p.dash=p.dashCooldown;p.dashTime=0.18;emit(s,'dash');}
-  if(input.pulse&&p.pulse<=0){p.pulse=7;emit(s,'pulse');s.shake=8;s.bullets=s.bullets.filter(b=>distance(b,p)>175);for(const e of s.enemies)if(distance(e,p)<175)destroyEnemy(s,e);}
+  if(input.dash&&p.dash<=0){p.dash=p.dashCooldown;p.dashTime=p.dashLength||.18;emit(s,'dash');}
+  if(input.pulse&&p.pulse<=0){p.pulse=p.pulseCooldown||7;const radius=p.pulseRadius||175;emit(s,'pulse',p.x,p.y,radius);s.shake=8;s.bullets=s.bullets.filter(b=>distance(b,p)>radius);let struck=false;for(const e of s.enemies)if(distance(e,p)<radius){destroyEnemy(s,e);struck=true;}if(struck&&p.dawnheart)p.hp=Math.min(p.maxHp,p.hp+1);}
   const dashing=p.dashTime>0;
   if(dashing){p.dashTime=Math.max(0,p.dashTime-dt);v={x:p.dx,y:p.dy};}
-  const speed=dashing?940:235;
+  const speed=dashing?940:(p.cruise||235);
   p.x+=v.x*speed*dt;p.y+=v.y*speed*dt;constrain(p,W);
   for(const spark of s.sparks){
     spark.age+=dt;const d=distance(p,spark);
@@ -103,7 +74,7 @@ export function update(s,input={},dt=STEP) {
       else{e.x+=(e.vx||n.x*42)*dt;e.y+=(e.vy||n.y*42)*dt;e.vx*=Math.exp(-dt*2.5);e.vy*=Math.exp(-dt*2.5);}
     }
     constrain(e,W);
-    if(segmentCircle(p.px,p.py,p.x,p.y,e.x,e.y,e.r+10)){
+    if(segmentCircle(p.px,p.py,p.x,p.y,e.x,e.y,e.r+10+(dashing?(p.dashWidth||0):0))){
       if(dashing)destroyEnemy(s,e);else if(hurtPlayer(s)){e.x-=n.x*60;e.y-=n.y*60;}
     }
   }

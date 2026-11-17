@@ -8,7 +8,7 @@
 
 An original, offline arcade voyage about carrying a little light through a dangerous sea. Pilot a glass-wing courier, gather amber sparks, dash through storm creatures, and return to a central beacon. Kindle all five dawns to bring back the morning, then venture into an endless tide.
 
-![Lumen Wake title screen](screenshots/1-start.jpg)
+![Lumen Wake: the leviathan's final tide](screenshots/1-start.jpg)
 
 ## Play in seconds
 
@@ -30,12 +30,13 @@ Open **http://127.0.0.1:8080** and press **Enter**. No install, account, build s
 
 **Gather → risk → return.** Carried light is unbanked. Each four sparks raises its value, up to **×4**, but a brighter hold attracts faster hunters. A hit costs one hull and half the cargo. Banking secures score and clears the water around the beacon. Dashing cuts enemies into more light; a timed pulse buys breathing room. Each dawn restores one hull and offers a choice: quicker dashes, more reach and capacity, or a stronger repaired hull.
 
-![Final tide gameplay, cargo and ability HUD](screenshots/2-storm.jpg)
+![Lumen Wake title and five-region route](screenshots/2-storm.jpg)
 
 ## A complete voyage
 
 - **Five escalating tides:** hunters, orbiting shooters, lancers with locked attack telegraphs, and the leviathan's final bullet fans.
-- **Three upgrade paths:** Slipstream, Gatherlight, and Second wind. Stack gifts into a build that matches how you fly.
+- **Nine gifts across three upgrade paths:** faster or wider dashes, expanded cargo and banking bonuses, pulse range and healing, protected banking, faster sails, and hull repairs. Discover a different set of three gifts each tide; stack them into a build that matches how you fly.
+- **Five distinct regions:** Glasswater's reefs, the Amber Shoals' spires, Vermilion Strait's shards, the Violet Reach's arches, and the ruins of the Last Dark, each rendered procedurally in its own palette.
 - **Daily tide and explicit seeds:** choose a UTC daily seed or type one on the title. `?seed=YOUR-SEED` preloads a challenge. Identical seeds, fixed-step inputs, and upgrade choices reproduce the simulation.
 - **Adaptive pressure:** successful banking raises storm pressure; damage eases it. Cargo increases danger. Spawns keep their distance, post-hit protection gives room to recover, and attacks signal their arrival.
 - **Persistent records:** personal best, seed records, mute, and reduced-motion preferences stay on the device. Storage failures leave the game playable.
@@ -52,7 +53,11 @@ The runtime has no third-party dependencies. Gameplay and visual randomness are 
 
 | Module | Responsibility |
 | --- | --- |
-| `game/src/simulation.js` | Fixed-step state machine, director, attacks, score, banking, upgrades |
+| `game/src/simulation.js` | Fixed-step world state, player motion and enemy director |
+| `game/src/progression.js` | Banking economy, dawn goals, nine gifts and endless transition |
+| `game/src/combat.js` | Projectile construction, kill chains, damage and invulnerability |
+| `game/src/events.js` | Bounded simulation event stream |
+| `game/src/regions.js` | Five procedural regional palettes, landmarks and route feedback |
 | `game/src/math.js` | Seeded random stream, vectors, bounds, swept collision math |
 | `game/src/render.js` | Procedural ocean, beacon, courier, creatures and leviathan |
 | `game/src/particles.js` | Bounded bursts, rings, floating score and impact effects |
@@ -74,13 +79,13 @@ The simulation suite exercises swept collision tangencies and tunneling, replay 
 
 | Measured on ARM64 Linux | Result |
 | --- | --- |
-| Simulation checks | 10 passed |
-| Stress simulation updates | 209,656 |
+| Simulation checks | 11 passed |
+| Stress simulation updates | 209,145 |
 | Seeded pilot victories | 48 / 48 |
-| Update p50 / p95 / p99 | 0.0043 / 0.0126 / 0.0236 ms |
-| Largest observed update | 5.412 ms |
-| Retained heap delta after repeated runs + GC | −1,176 bytes |
-| Browser draw + update p99 | 7 ms in final Chromium run |
+| Update p50 / p95 / p99 | 0.0067 / 0.0208 / 0.0406 ms |
+| Largest observed update | 13.614 ms |
+| Retained heap delta after repeated runs + GC | +3,288 bytes |
+| Browser draw + update p99 | 8 ms in final Chromium run |
 | Browser errors / failed assets / external requests | 0 / 0 / 0 |
 
 Browser verification is separate from simulation timing. With Playwright installed for development, start the local server and run:

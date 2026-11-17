@@ -1,4 +1,4 @@
-import {STEP,UPGRADES} from './config.js';
+import {STEP,offeredUpgrades} from './config.js';
 import {createGame,startGame,update,togglePause,chooseUpgrade,continueEndless} from './simulation.js';
 import {Effects} from './particles.js';
 import {Renderer} from './render.js';
@@ -21,7 +21,7 @@ const controls=new Controls(renderer.canvas,renderer,key=>{
   if(key==='escape'||key==='p')pause();
   if(key==='m')mute();
   if(key==='enter'){if(state.phase==='title')actions.start(document.getElementById('seed').value||'FIRST-LIGHT','voyage');else if(state.phase==='won'||state.phase==='lost')actions.retry();else if(state.phase==='paused')pause();}
-  if(['1','2','3'].includes(key))actions.upgrade(UPGRADES[Number(key)-1].id);
+  if(['1','2','3'].includes(key))actions.upgrade(offeredUpgrades(state)[Number(key)-1].id);
 });
 ui.preferences(sound.muted,effects.reduced);ui.update(state);
 addEventListener('resize',()=>renderer.resize());

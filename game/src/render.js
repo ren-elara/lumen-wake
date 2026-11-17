@@ -1,5 +1,6 @@
 import {WORLD as W,COLORS as C,DAWNS} from './config.js';
 import {goal} from './simulation.js';
+import {drawRegion} from './regions.js';
 export class Renderer {
   constructor(canvas,effects){this.canvas=canvas;this.c=canvas.getContext('2d',{alpha:false});this.fx=effects;this.scale=1;this.ox=0;this.oy=0;this.backdrop=null;this.resize();}
   resize(){const w=innerWidth,h=innerHeight,dpr=Math.min(devicePixelRatio||1,1.6);this.canvas.width=Math.round(w*dpr);this.canvas.height=Math.round(h*dpr);this.scale=Math.min(w/W.width,h/W.height)*dpr;this.ox=(w*dpr-W.width*this.scale)/2;this.oy=(h*dpr-W.height*this.scale)/2;this.backdrop=null;}
@@ -57,7 +58,7 @@ export class Renderer {
     c.drawImage(this.backdrop,0,0);
     if(title){c.save();c.translate(240,-18);this.beacon(s,t);this.leviathan({...s,bossAngle:3.95,energy:20},t);this.courier({...s.player,x:890,y:530,cargo:7,dx:-.6,dy:-1},t,true);for(let i=0;i<16;i++){const a=i*.8;this.diamond(825+Math.cos(a)*190,395+Math.sin(a)*140,3+i%3,C.gold);}c.restore();}
     else{
-      this.beacon(s,t);if(s.dawn>=4)this.leviathan(s,t);
+      drawRegion(this,s,t);this.beacon(s,t);if(s.dawn>=4)this.leviathan(s,t);
       for(const q of s.sparks){const alpha=q.life-q.age<3?.4+Math.sin(t*8)*.3:.9;c.globalAlpha=alpha;this.glow(q.x,q.y,16,'#ffcd7820');this.diamond(q.x,q.y+Math.sin(t*2+q.phase)*2,4.3,C.gold);}c.globalAlpha=1;
       for(const e of s.enemies)this.enemy(e,t);
       c.save();c.globalCompositeOperation='lighter';for(const b of s.bullets){c.strokeStyle='#ff726755';c.lineWidth=2;c.beginPath();c.moveTo(b.x-b.vx*.035,b.y-b.vy*.035);c.lineTo(b.x,b.y);c.stroke();this.diamond(b.x,b.y,4.5,C.coral);}c.restore();

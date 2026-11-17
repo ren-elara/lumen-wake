@@ -10,7 +10,7 @@ export class Effects {
     if(e.type==='dash')this.burst(e.x,e.y,C.teal,12,80);
     if(e.type==='hurt'){this.burst(e.x,e.y,C.coral,35,180);this.flash=.2;}
     if(e.type==='bank'){this.ring(e.x,e.y,C.teal,260);this.ring(e.x,e.y,C.gold,170);this.burst(e.x,e.y,C.gold,60,230);this.label(e.x,e.y-70,`+${e.value.toLocaleString()}`,C.gold);}
-    if(e.type==='pulse'){this.ring(e.x,e.y,C.teal,190);this.burst(e.x,e.y,C.teal,40,210);}
+    if(e.type==='pulse'){this.ring(e.x,e.y,C.teal,e.value||190);this.burst(e.x,e.y,C.teal,40,210);}
     if(['win','dawn'].includes(e.type)){this.ring(e.x,e.y,C.gold,500);this.burst(e.x,e.y,C.gold,90,300);}
     if(e.type==='graze')this.burst(e.x,e.y,C.teal,5,50);
   }
