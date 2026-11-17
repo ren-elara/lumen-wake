@@ -4,14 +4,15 @@ const $=id=>document.getElementById(id);
 export function loadRecords(){try{return JSON.parse(localStorage.getItem('lumen-wake-v1')||'{}')||{};}catch{return{};}}
 export function storeRecords(data){try{localStorage.setItem('lumen-wake-v1',JSON.stringify(data));}catch{/* Private browsing and full storage remain playable. */}}
 export class Interface {
-  constructor(actions){this.actions=actions;this.records=loadRecords();this.lastPhase='';this.lastHud=0;this.finished=null;
-    $('play').onclick=()=>actions.start($('seed').value||'FIRST-LIGHT','voyage');
+  constructor(actions){this.actions=actions;this.records=loadRecords();this.lastPhase='';this.lastHud=0;this.finished=null;this.selectedMode='voyage';
+    $('play').onclick=()=>actions.start($('seed').value||'FIRST-LIGHT',this.selectedMode);
+    for(const [id,mode] of [['mode-voyage','voyage'],['mode-endless','endless']])$(id).onclick=()=>{this.selectedMode=mode;for(const [button,value] of [['mode-voyage','voyage'],['mode-endless','endless']]){$(button).classList.toggle('selected',value===mode);$(button).ariaPressed=String(value===mode);}const play=$('play');play.replaceChildren(mode==='voyage'?'Set sail':'Enter endless',Object.assign(document.createElement('span'),{textContent:'↗'}),Object.assign(document.createElement('small'),{textContent:mode==='voyage'?'ENTER':'NO FINAL DAWN'}));};
     $('daily').onclick=()=>{const seed='TIDE-'+new Date().toISOString().slice(0,10);$('seed').value=seed;actions.start(seed,'daily');};
     $('pause').onclick=actions.pause;$('resume').onclick=actions.pause;$('mute').onclick=actions.mute;$('motion').onclick=actions.motion;
     $('retry').onclick=actions.retry;$('restart-pause').onclick=actions.retry;$('back-title').onclick=actions.home;$('home').onclick=actions.home;$('endless').onclick=actions.endless;
     $('dash-button').onpointerdown=e=>{e.preventDefault();actions.dash();};$('pulse-button').onpointerdown=e=>{e.preventDefault();actions.pulse();};
     const param=new URLSearchParams(location.search).get('seed');if(param)$('seed').value=param.slice(0,32);
-    $('title-best').textContent=`YOUR BEST VOYAGE · ${Math.round(this.records.best||0).toLocaleString()}`;
+    $('title-best').textContent=`YOUR BEST VOYAGE · ${Math.round(this.records.byMode?.voyage||this.records.best||0).toLocaleString()}`;
     this.gifts(UPGRADES.slice(0,3));
   }
   gifts(offers){$('upgrade-cards').replaceChildren(...offers.map((u,i)=>{const b=document.createElement('button');b.className='upgrade-card';b.innerHTML=`<kbd>${i+1}</kbd><span style="color:${u.color}">${u.symbol}</span><small>${u.tag}</small><h3>${u.name}</h3><p>${u.text}</p>`;b.onclick=()=>this.actions.upgrade(u.id);return b;}));}
@@ -26,7 +27,7 @@ export class Interface {
     const p=s.player;$('dawn-label').textContent=s.phase==='title'?'THE LANTERN ARCHIPELAGO':`DAWN ${String(s.dawn+1).padStart(2,'0')} OF ${s.mode==='endless'?'∞':'05'}`;
     $('mission-name').textContent=s.phase==='title'?'Carry the dawn.':DAWNS[Math.min(s.dawn,4)].name;
     $('dawn-progress').style.width=`${s.phase==='title'?0:Math.min(100,s.energy/goal(s)*100)}%`;
-    $('score').textContent=Math.round(s.score).toLocaleString();$('best-score').textContent=`BEST ${Math.round(this.records.best||0).toLocaleString()}`;
+    $('score').textContent=Math.round(s.score).toLocaleString();$('best-score').textContent=`BEST ${Math.round(this.records.byMode?.[s.mode]||this.records.best||0).toLocaleString()}`;
     $('hull').innerHTML=Array.from({length:p.maxHp},(_,i)=>`<i class="${i>=p.hp?'empty':''}"></i>`).join('');
     $('wave-counter').textContent=`${String(s.dawn+1).padStart(2,'0')} / ${s.mode==='endless'?'∞':'05'}`;
     $('cargo-count').textContent=`${p.cargo} / ${p.cap}`;$('cargo-slots').innerHTML=Array.from({length:p.cap},(_,i)=>`<i class="${i<p.cargo?'full':''}"></i>`).join('');
@@ -37,15 +38,15 @@ export class Interface {
     $('guide-text').textContent=s.time<3?'Steer with WASD or drag. Gather the amber light.':p.cargo>=8?'Your hold is bright. Return to the central beacon.':!s.banks&&p.cargo?'Bring your light to the beacon at the center.':s.dawn>=4?'Bank light to break the leviathan’s shield.':p.hp<=2?'Hull critical. Dash through threats; pulse to escape.':'More carried light = more reward. And more danger.';
   }
   results(s){
-    const won=s.phase==='won',score=Math.round(s.score),best=this.records.best||0,newBest=score>best;
-    if(this.finished!==s){this.finished=s;this.records.best=Math.max(best,score);this.records.seeds??={};const key=`${s.mode}:${s.seed}`;this.records.seeds[key]=Math.max(this.records.seeds[key]||0,score);const keys=Object.keys(this.records.seeds);if(keys.length>50)delete this.records.seeds[keys[0]];storeRecords(this.records);}
+    const won=s.phase==='won',score=Math.round(s.score);this.records.byMode??={voyage:this.records.best||0};const best=this.records.byMode[s.mode]||0,newBest=score>best;
+    if(this.finished!==s){this.finished=s;this.records.best=Math.max(this.records.best||0,score);this.records.byMode[s.mode]=Math.max(best,score);this.records.seeds??={};const key=`${s.mode}:${s.seed}`;this.records.seeds[key]=Math.max(this.records.seeds[key]||0,score);const keys=Object.keys(this.records.seeds);if(keys.length>50)delete this.records.seeds[keys[0]];storeRecords(this.records);}
     $('result-emblem').textContent=won?'✧':'◇';$('result-eyebrow').textContent=won?'ALL FIVE DAWNS KINDLED':`VOYAGE ENDED · DAWN ${s.dawn+1}`;
     $('result-title').innerHTML=won?'You brought<br><em>the morning.</em>':'A light worth<br><em>carrying.</em>';
     $('result-description').textContent=won?'Even the longest night gives way to a little light.':'The sea keeps your story. The beacon keeps your score.';
     $('result-score').textContent=score.toLocaleString();$('record-label').textContent=newBest?'NEW PERSONAL BEST':'';
     const time=`${Math.floor(s.time/60)}:${String(Math.floor(s.time%60)).padStart(2,'0')}`;
     $('result-stats').innerHTML=[[s.banked,'LIGHT SAVED'],['×'+s.peak,'PEAK MULTIPLIER'],[s.kills,'STORMS CUT'],[s.dawn+(won?1:0),'DAWNS KINDLED'],[time,'VOYAGE TIME'],[s.hits,'HITS TAKEN']].map(([v,label])=>`<div><strong>${v}</strong><small>${label}</small></div>`).join('');
-    $('endless').hidden=!won;$('result-seed').textContent=`SEED ${s.seed.toUpperCase()} · ${s.mode.toUpperCase()}`;$('title-best').textContent=`YOUR BEST VOYAGE · ${this.records.best.toLocaleString()}`;
+    $('endless').hidden=!won;$('endless').textContent=s.mode==='endless'?'Return to the five dawns':'Keep the light · Endless tide';if(s.mode==='endless')$('endless').onclick=()=>this.actions.home();$('result-seed').textContent=`SEED ${s.seed.toUpperCase()} · ${s.mode.toUpperCase()}`;$('title-best').textContent=`YOUR BEST VOYAGE · ${this.records.byMode.voyage.toLocaleString()}`;
     setTimeout(()=>$('retry').focus({preventScroll:true}),30);
   }
 }

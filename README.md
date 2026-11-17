@@ -37,6 +37,7 @@ Open **http://127.0.0.1:8080** and press **Enter**. No install, account, build s
 - **Five escalating tides:** hunters, orbiting shooters, lancers with locked attack telegraphs, and the leviathan's final bullet fans.
 - **Nine gifts across three upgrade paths:** faster or wider dashes, expanded cargo and banking bonuses, pulse range and healing, protected banking, faster sails, and hull repairs. Discover a different set of three gifts each tide; stack them into a build that matches how you fly.
 - **Five distinct regions:** Glasswater's reefs, the Amber Shoals' spires, Vermilion Strait's shards, the Violet Reach's arches, and the ruins of the Last Dark, each rendered procedurally in its own palette.
+- **Choose your voyage:** play the five-dawn campaign, start the **Endless Tide** directly for a standalone score chase, or unlock endless play after the campaign. Endless voyages continue adding dawns, hazards and escalating light goals without a final victory screen. Campaign and endless bests persist separately.
 - **Daily tide and explicit seeds:** choose a UTC daily seed or type one on the title. `?seed=YOUR-SEED` preloads a challenge. Identical seeds, fixed-step inputs, and upgrade choices reproduce the simulation.
 - **Adaptive pressure:** successful banking raises storm pressure; damage eases it. Cargo increases danger. Spawns keep their distance, post-hit protection gives room to recover, and attacks signal their arrival.
 - **Persistent records:** personal best, seed records, mute, and reduced-motion preferences stay on the device. Storage failures leave the game playable.
@@ -79,13 +80,13 @@ The simulation suite exercises swept collision tangencies and tunneling, replay 
 
 | Measured on ARM64 Linux | Result |
 | --- | --- |
-| Simulation checks | 11 passed |
+| Simulation checks | 12 passed |
 | Stress simulation updates | 209,145 |
 | Seeded pilot victories | 48 / 48 |
-| Update p50 / p95 / p99 | 0.0067 / 0.0208 / 0.0406 ms |
-| Largest observed update | 13.614 ms |
-| Retained heap delta after repeated runs + GC | +3,288 bytes |
-| Browser draw + update p99 | 8 ms in final Chromium run |
+| Update p50 / p95 / p99 | 0.0049 / 0.0119 / 0.0228 ms |
+| Largest observed update | 8.006 ms |
+| Retained heap delta after repeated runs + GC | +3,568 bytes |
+| Browser draw + update p99 | 7 ms in Chromium run |
 | Browser errors / failed assets / external requests | 0 / 0 / 0 |
 
 Browser verification is separate from simulation timing. With Playwright installed for development, start the local server and run:

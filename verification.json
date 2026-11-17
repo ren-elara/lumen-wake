@@ -1,15 +1,15 @@
 {
-  "checks": 11,
+  "checks": 12,
   "simulationSteps": 209145,
   "seededVoyages": 48,
   "victories": 48,
   "losses": 0,
   "longestVoyageSeconds": 60.7,
   "updateMs": {
-    "p50": 0.0067,
-    "p95": 0.0208,
-    "p99": 0.0406,
-    "max": 13.6142
+    "p50": 0.0049,
+    "p95": 0.0119,
+    "p99": 0.0228,
+    "max": 8.0057
   },
   "frameBudgetMs": 16.667,
   "peaks": {
@@ -18,7 +18,7 @@
     "sparks": 36,
     "particles": 420
   },
-  "retainedHeapBytes": 3288,
+  "retainedHeapBytes": 3568,
   "node": "v22.23.5",
   "platform": "linux",
   "arch": "arm64",

@@ -2,13 +2,13 @@
   "browser": "142.0.7444.59",
   "viewport": "1280×800",
   "inputDrivenVictory": {
-    "seconds": 51.58,
-    "score": 101533,
+    "seconds": 50.43,
+    "score": 98032,
     "dawns": 5,
-    "banked": 250,
+    "banked": 248,
     "hits": 1,
-    "kills": 33,
-    "iterations": 522
+    "kills": 32,
+    "iterations": 510
   },
   "pageErrors": [],
   "externalRequests": [],
@@ -17,12 +17,13 @@
   "restart": true,
   "scorePersistence": true,
   "portraitTouch": true,
+  "directEndlessMode": true,
   "drawAndUpdateMs": {
     "p50": 4,
     "p95": 5,
-    "p99": 8
+    "p99": 7
   },
-  "samples": 161,
-  "liveVoices": 2,
+  "samples": 192,
+  "liveVoices": 3,
   "notes": "CPU headless Chromium on ARM64 musl; frame work timings include drawing, simulation and HUD, but exclude compositor and display latency. Screenshots are unedited browser captures from reachable input-driven states."
 }

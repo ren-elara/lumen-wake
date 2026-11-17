@@ -14,13 +14,13 @@ let accumulator=0,last=0,visualTime=0;
 function start(seed,mode){state=createGame(seed,mode);startGame(state);effects.particles=[];effects.rings=[];effects.labels=[];accumulator=0;controls.clear();sound.unlock();ui.lastPhase='';ui.finished=null;ui.update(state);}
 function pause(){togglePause(state);controls.clear();accumulator=0;ui.update(state);}
 function mute(){sound.unlock();sound.setMuted(!sound.muted);ui.records.muted=sound.muted;storeRecords(ui.records);ui.preferences(sound.muted,effects.reduced);}
-const actions={start,pause,mute,retry:()=>start(state.seed,state.mode==='endless'?'voyage':state.mode),home:()=>{state=createGame(state.seed);controls.clear();ui.update(state);},endless:()=>{continueEndless(state);ui.update(state);},upgrade:id=>{chooseUpgrade(state,id);controls.clear();ui.update(state);sound.unlock();},dash:()=>{controls.dash=true;sound.unlock();},pulse:()=>{controls.pulse=true;sound.unlock();},motion:()=>{effects.reduced=!effects.reduced;ui.records.reduced=effects.reduced;storeRecords(ui.records);ui.preferences(sound.muted,effects.reduced);}};
+const actions={start,pause,mute,retry:()=>start(state.seed,state.mode),home:()=>{state=createGame(state.seed);controls.clear();ui.update(state);},endless:()=>{continueEndless(state);ui.update(state);},upgrade:id=>{chooseUpgrade(state,id);controls.clear();ui.update(state);sound.unlock();},dash:()=>{controls.dash=true;sound.unlock();},pulse:()=>{controls.pulse=true;sound.unlock();},motion:()=>{effects.reduced=!effects.reduced;ui.records.reduced=effects.reduced;storeRecords(ui.records);ui.preferences(sound.muted,effects.reduced);}};
 const ui=new Interface(actions);
 const controls=new Controls(renderer.canvas,renderer,key=>{
   if(key==='gesture')sound.unlock();
   if(key==='escape'||key==='p')pause();
   if(key==='m')mute();
-  if(key==='enter'){if(state.phase==='title')actions.start(document.getElementById('seed').value||'FIRST-LIGHT','voyage');else if(state.phase==='won'||state.phase==='lost')actions.retry();else if(state.phase==='paused')pause();}
+  if(key==='enter'){if(state.phase==='title')actions.start(document.getElementById('seed').value||'FIRST-LIGHT',ui.selectedMode);else if(state.phase==='won'||state.phase==='lost')actions.retry();else if(state.phase==='paused')pause();}
   if(['1','2','3'].includes(key))actions.upgrade(offeredUpgrades(state)[Number(key)-1].id);
 });
 ui.preferences(sound.muted,effects.reduced);ui.update(state);
