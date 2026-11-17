@@ -6,10 +6,10 @@
   "losses": 0,
   "longestVoyageSeconds": 60.7,
   "updateMs": {
-    "p50": 0.0049,
-    "p95": 0.0119,
-    "p99": 0.0228,
-    "max": 8.0057
+    "p50": 0.0045,
+    "p95": 0.0109,
+    "p99": 0.0204,
+    "max": 7.4287
   },
   "frameBudgetMs": 16.667,
   "peaks": {
@@ -18,7 +18,7 @@
     "sparks": 36,
     "particles": 420
   },
-  "retainedHeapBytes": 3568,
+  "retainedHeapBytes": 3904,
   "node": "v22.23.5",
   "platform": "linux",
   "arch": "arm64",

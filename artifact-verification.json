@@ -1,30 +1,30 @@
 {
   "identicalBuilds": true,
   "files": 20,
-  "totalBytes": 756948,
-  "dossierSha256": "b0fc0faf1bb07d37097a43b36df0866831fa498aa8369c9ee8aa16ddd7680bf6",
+  "totalBytes": 765833,
+  "dossierSha256": "22bfdd5b72b917d96b04d052f2bc34b4ebe88609b006c1c7d2311431849575f2",
   "screenshots": [
     {
       "file": "screenshots/1-start.jpg",
-      "bytes": 85024,
+      "bytes": 84745,
       "width": 1280,
       "height": 800
     },
     {
       "file": "screenshots/2-storm.jpg",
-      "bytes": 87417,
+      "bytes": 90027,
       "width": 1280,
       "height": 800
     },
     {
       "file": "screenshots/3-gift.jpg",
-      "bytes": 49918,
+      "bytes": 49920,
       "width": 1280,
       "height": 800
     },
     {
       "file": "screenshots/4-morning.jpg",
-      "bytes": 48871,
+      "bytes": 49104,
       "width": 1280,
       "height": 800
     }

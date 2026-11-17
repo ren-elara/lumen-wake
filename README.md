@@ -83,9 +83,9 @@ The simulation suite exercises swept collision tangencies and tunneling, replay 
 | Simulation checks | 12 passed |
 | Stress simulation updates | 209,145 |
 | Seeded pilot victories | 48 / 48 |
-| Update p50 / p95 / p99 | 0.0049 / 0.0119 / 0.0228 ms |
-| Largest observed update | 8.006 ms |
-| Retained heap delta after repeated runs + GC | +3,568 bytes |
+| Update p50 / p95 / p99 | 0.0045 / 0.0109 / 0.0204 ms |
+| Largest observed update | 7.429 ms |
+| Retained heap delta after repeated runs + GC | +3,904 bytes |
 | Browser draw + update p99 | 7 ms in Chromium run |
 | Browser errors / failed assets / external requests | 0 / 0 / 0 |
 
